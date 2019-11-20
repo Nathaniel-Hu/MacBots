@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.0.1 (Developmental)
+Program Version: 0.0.2 (Developmental)
 Last Updated: November 13th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
@@ -10,6 +10,8 @@ Program Description
 """
 from time import *
 from pickle import *
+
+from MacBotCourseProfileCreator import *
 
 
 class MacGradeBot:
@@ -28,6 +30,9 @@ class MacGradeBot:
         self.courses = []
         self.courseInfo = {}
         self.cumulativeAvg = float()
+
+        # student course + course information (course profiles) dictionary
+        self.courses2 = {}
 
         userChoice = input("Login or Sign Up: ")
         if userChoice.lower() == 'sign up':
@@ -126,9 +131,17 @@ class MacGradeBot:
         self.courses.append(course)
         self.courseInfo[course] = courseInfo
 
+    def addCourse2(self, courseName, courseCode, courseCredits):
+        self.courses2[courseName] = MacBotCourseProfileCreator(courseName, courseCode, courseCredits)
+
     # method updates course info for given course in student profile
     def editCourseInfo(self, course, courseInfo):
         self.courseInfo[course] = courseInfo
+
+    # allows user to update course grades (labs, assignments, midterm tests and exams, etc.)
+    def editCourseInfo2(self, courseName):
+        # self.courses2[courseName] =
+        pass
 
     # calculates cumulative average
     def calcCumulativeAvg(self):
