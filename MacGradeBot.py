@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.0.2 (Developmental)
+Program Version: 0.0.3 (Developmental)
 Last Updated: November 13th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
@@ -26,13 +26,10 @@ class MacGradeBot:
         self.emailConfirm = str()
         self.saveFile = str()
 
-        # student course + course information + cumulative average
-        self.courses = []
+        # student course + course information (course profiles) dictionary + cumulative average
+        self.courseNames = []
         self.courseInfo = {}
         self.cumulativeAvg = float()
-
-        # student course + course information (course profiles) dictionary
-        self.courses2 = {}
 
         userChoice = input("Login or Sign Up: ")
         if userChoice.lower() == 'sign up':
@@ -45,51 +42,49 @@ class MacGradeBot:
 
     # main method
     def main(self):
-        userChoices = ['add', 'edit', "avg"]
+        userChoices = ['add', 'edit', 'avg', 'quit']
 
-        print("Here is your current MacGradeBot student profile:\n" + str(self.courses) + "\n" + str(self.courseInfo) +
-              "\n" + str(self.cumulativeAvg))
+        print("Here is your current MacGradeBot student profile:\n", str(self.courseNames), "\n", str(self.courseInfo),
+              "\n", str(self.cumulativeAvg))
 
         while True:
-            userChoice = input("Hello, would you like to add/edit a course (add/edit), or calculate your cumulative " +
-                               "average (avg): ")
+            print("MacGradeBot Program")
+            userChoice = input("Hello, would you like to add/edit a course (add/edit), calculate your cumulative " +
+                               "average (avg), or quit (quit): ")
 
             while userChoice not in userChoices:
                 userChoice = input("Please input add/edit here: ")
 
             # adding a course
             if userChoice == userChoices[0]:
-                course = input("Enter your course name here (e.g. ENG 1D04): ")
-                grade = float(input("12-Point Grade for {}: ".format(course)))
-                credits = int(input("# of credits for {}: ".format(course)))
-                self.addCourse(course, [grade, credits])
+                self.addCourse()
+
             # editing a course's info
             elif userChoice == userChoices[1]:
-                course = input("Enter the course you would like to edit here: ")
-                grade = float(input("Edited 12-Point Grade for {}: ".format(course)))
-                credits = int(input("Edited # of credits for {}: ".format(course)))
-                self.editCourseInfo(course, [grade, credits])
-            else:
+                self.editCourseInfo()
+
+            # calculates course avg
+            elif userChoice == userChoices[2]:
                 self.calcCumulativeAvg()
+
+            # quits the program (add option later asking if user wants to save edits or not)
+            else:
+                self.quit()
 
             userChoice = input("Would you like to quit (yes/no): ")
 
             if userChoice == "no":
                 pass
             else:
-                print("saving student profile")
-                self.saveToFile()
-
-                print("shutting down")
-                break
+                self.quit()
 
     # sign up method
     def signUp(self):
         self.name = input("Name: ")
 
-        self.saveFile = self.name
-
         self.username = input("Username: ")
+
+        self.saveFile = self.username
 
         self.password = input("Password: ")
         self.passwordConfirm = input("Confirm Password: ")
@@ -108,16 +103,15 @@ class MacGradeBot:
     # login method
     def login(self):
         while True:
-            user = input("Name: ")
+            user = input("Username: ")
             self.password = input("Password: ")
 
-            # open user save (binary file; .dat)
-            with open('{}.dat'.format(user), 'rb') as save:
-                self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile, self.courses, \
-                    self.courseInfo, self.cumulativeAvg = load(save)
+            self.openSaveFile(user)
 
-            if user == self.name:
+            # compares username to see if username is correct (this is redundant) FIXME
+            if user == self.username:
                 while True:
+                    # tests if password is correct
                     if self.password == self.passwordConfirm:
                         break
                     else:
@@ -126,61 +120,87 @@ class MacGradeBot:
             else:
                 pass
 
-    # method adds course + course info to student profile
-    def addCourse(self, course, courseInfo):
-        self.courses.append(course)
-        self.courseInfo[course] = courseInfo
+    # method adds course + course info (creates/adds new course profile) to student profile
+    def addCourse(self):
+        # gets user inputted information
+        courseName = input("Enter your course name (e.g. ENG COMP) here: ").upper()
+        courseCode = input("Enter the course code for {} here: ".format(courseName))
+        courseCredits = int(input("Enter the # of credits for {} here: ".format(courseName)))
 
-    def addCourse2(self, courseName, courseCode, courseCredits):
-        self.courses2[courseName] = MacBotCourseProfileCreator(courseName, courseCode, courseCredits)
+        # appends course name to courseNames; creates new course profile object (class instance)
+        self.courseNames.append(courseName)
+        self.courseInfo[courseName] = MacBotCourseProfileCreator(courseName, courseCode, courseCredits)
 
-    # method updates course info for given course in student profile
-    def editCourseInfo(self, course, courseInfo):
-        self.courseInfo[course] = courseInfo
+        # references course profile creator main method
+        self.courseInfo[courseName].courseProfileMain()
 
     # allows user to update course grades (labs, assignments, midterm tests and exams, etc.)
-    def editCourseInfo2(self, courseName):
-        # self.courses2[courseName] =
-        pass
+    def editCourseInfo(self):
+        # gets user inputted information
+        courseName = input("Enter the name of the course that you would like to edit here: ")
+        # references course profile creator main method
+        self.courseInfo[courseName].courseProfileMain()
 
     # calculates cumulative average
     def calcCumulativeAvg(self):
         averageSum = float()
         creditsSum = int()
-        for course in self.courses:
-            averageSum += self.courseInfo[course][0] * self.courseInfo[course][1]
-            creditsSum += self.courseInfo[course][1]
 
-        self.cumulativeAvg = round(averageSum / creditsSum, 2)
+        # goes through each course, sums average times course credits, and course credits
+        for courseName in self.courseNames:
+            averageSum += self.courseInfo[courseName].courseAvg * self.courseInfo[courseName].courseCredits
+            creditsSum += self.courseInfo[courseName].courseCredits
+
+        # calculates cumulative average (percentage) and displays to user
+        self.cumulativeAvg = round(averageSum / creditsSum * 100.0, 2)
+        print("Your overall cumulative average is:", self.cumulativeAvg)
 
     # saves user profile (binary and text files)
     def saveToFile(self):
         userSaveBinary = [self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile,
-                          self.courses, self.courseInfo, self.cumulativeAvg]
+                          self.courseNames, self.courseInfo, self.cumulativeAvg]
 
         # user save (binary file; .dat)
-        with open('{}.dat'.format(self.saveFile), 'wb') as binarySave:
+        with open('{0}/{0}_MGBS.dat'.format(self.saveFile), 'wb') as binarySave:
             dump(userSaveBinary, binarySave)
 
-        textSave = open('{}.txt'.format(self.saveFile), 'w')
+        # user save (text file; .txt)
+        textSave = open('{0}/{0}_MGBS.txt'.format(self.saveFile), 'w')
 
         text = "======================================= MacGradeBot ======================================\n" + \
                "\n------------------------------------------------------------------------------------------" + \
                "\nName: " + self.name + "\nUsername: " + self.username + "\nPassword: " + self.passwordConfirm + \
                "\nEmail: " + self.emailConfirm + "\nCumulative Average: " + str(self.cumulativeAvg) + \
                "\n------------------------------------------------------------------------------------------" + \
-               "\n\n" + "Course Name: [12-Point GPA, # Credits]\n--------------------------------"
+               "\n\n" + "Course Name: [# Credits, Average, 12-Point GPA]\n--------------------------------"
         textSave.write(text)
         textSave.close()
 
         # user save (text file; .txt)
-        textSave = open('{}.txt'.format(self.saveFile), 'a')
-        for course in self.courses:
-            textSave.write("\n{}:\t".format(course))
-            textSave.write(str(self.courseInfo[course]))
+        textSave = open('{0}/{0}_MGBS.txt'.format(self.saveFile), 'a')
+        for course in self.courseNames:
+            courseInfo = self.courseInfo[course]
+            textSave.write("\n{0} {1}:\t".format(course, courseInfo.courseCode))
+            textSave.write("Course Credits: {0}\tCourse Average: {1:<5}\tCourse 12p GPA: {2:<4}".format(
+                courseInfo.courseCredits, round(courseInfo.courseAvg, 3), courseInfo.course12pGPA))
         textSave.close()
 
+    # opens user profile (binary file)
+    def openSaveFile(self, user):
+        # open user save (binary file; .dat)
+        with open('{0}/{0}_MGBS.dat'.format(user), 'rb') as save:
+            self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile, self.courseNames, \
+                self.courseInfo, self.cumulativeAvg = load(save)
 
+    # quit method
+    def quit(self):
+        print("saving student profile")
+        self.saveToFile()
+        print("shutting down")
+        quit()
+
+
+# import management code
 if __name__ == "__main__":
     MacUser = MacGradeBot()
 else:
