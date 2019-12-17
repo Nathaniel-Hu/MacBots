@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.0.4 (Developmental)
+Program Version: 0.0.5 (Developmental)
 Last Updated: November 13th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
@@ -46,30 +46,39 @@ class MacGradeBot:
 
     # main method
     def main(self):
-        userChoices = ['add', 'edit', 'avg', 'quit']
+        userChoices = ['display', 'add', 'edit', 'avg', 'save', 'quit']
 
         print("Here is your current MacGradeBot student profile:\n", str(self.courseNames), "\n", str(self.courseInfo),
               "\n", str(self.cumulativeAvg))
 
         while True:
             print("MacGradeBot Program")
-            userChoice = input("Hello, would you like to add/edit a course (add/edit), calculate your cumulative " +
-                               "average (avg), or quit (quit): ")
+            userChoice = input("Hello, would you like to display current courses (display), add/edit a course " +
+                               "(add/edit), calculate your cumulative average (avg), save your data (save) or quit " +
+                               "(quit): ")
 
+            # exception handling for user choice inputs
             while userChoice not in userChoices:
-                userChoice = input("Please input add/edit here: ")
+                userChoice = input("Please input display/add/edit/avg/save/quit here: ")
+
+            # display current courses
+            if userChoice == userChoices[0]:
+                self.displayCourses()
 
             # adding a course
-            if userChoice == userChoices[0]:
+            elif userChoice == userChoices[1]:
                 self.addCourse()
 
             # editing a course's info
-            elif userChoice == userChoices[1]:
+            elif userChoice == userChoices[2]:
                 self.editCourseInfo()
 
             # calculates course avg
-            elif userChoice == userChoices[2]:
+            elif userChoice == userChoices[3]:
                 self.calcCumulativeAvg()
+
+            elif userChoice == userChoices[4]:
+                self.saveController()
 
             # quits the program (add option later asking if user wants to save edits or not)
             else:
@@ -128,10 +137,22 @@ class MacGradeBot:
             else:
                 pass
 
+    # method displays all current courses in student profile
+    def displayCourses(self):
+        print("Here are all of your current courses:\n--------------------------------")
+        for course in self.courseNames:
+            print(self.courseInfo[course].courseCode, course)
+        print("--------------------------------")
+
     # method adds course + course info (creates/adds new course profile) to student profile
     def addCourse(self):
         # gets user inputted information
         courseName = input("Enter your course name (e.g. ENG COMP) here: ").upper()
+
+        while courseName in self.courseNames:
+            courseName = input("Sorry, but that course name has already been taken. Please re-enter your course name" +
+                               " (e.g. ENG COMP) here: ").upper()
+
         courseCode = input("Enter the course code for {} here: ".format(courseName))
         courseCredits = int(input("Enter the # of credits for {} here: ".format(courseName)))
 
@@ -226,6 +247,14 @@ class MacGradeBot:
                 courseInfo.courseCredits, round(courseInfo.courseAvg, 3), courseInfo.course12pGPA))
         textSave.close()
 
+    # save controller method
+    def saveController(self):
+        print("saving student profile")
+        if self.botVersion == 0:
+            self.saveToFile()
+        else:
+            self.saveToFile1()
+
     # opens user profile (binary file)
     def openSaveFile(self, user):
         # for earlier developmental versions
@@ -261,11 +290,7 @@ class MacGradeBot:
 
     # quit method
     def quit(self):
-        print("saving student profile")
-        if self.botVersion == 0:
-            self.saveToFile()
-        else:
-            self.saveToFile1()
+        self.saveController()
         print("shutting down")
         quit()
 
