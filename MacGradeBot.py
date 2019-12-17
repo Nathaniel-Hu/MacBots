@@ -1,13 +1,16 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.0.3 (Developmental)
+Program Version: 0.0.4 (Developmental)
 Last Updated: November 13th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
 [insert program description]
 ------------------------------------------------------------------------------------------------------------------------
 """
+# this controls program data updating/patching functions/mechanisms in the program
+currentBotVersion = 0.0
+
 from time import *
 from pickle import *
 
@@ -16,7 +19,7 @@ from MacBotCourseProfileCreator import *
 
 class MacGradeBot:
     # instantiation of class into new student profile object
-    def __init__(self):
+    def __init__(self, botVersion=0.0):
         # student user profile information
         self.name = str()
         self.username = str()
@@ -25,6 +28,7 @@ class MacGradeBot:
         self.email = str()
         self.emailConfirm = str()
         self.saveFile = str()
+        self.botVersion = botVersion
 
         # student course + course information (course profiles) dictionary + cumulative average
         self.courseNames = []
@@ -106,7 +110,11 @@ class MacGradeBot:
             user = input("Username: ")
             self.password = input("Password: ")
 
-            self.openSaveFile(user)
+            try:
+                self.openSaveFile(user)
+            except FileNotFoundError:
+                print("Sorry, but that user does not exist.")
+                continue
 
             # compares username to see if username is correct (this is redundant) FIXME
             if user == self.username:
@@ -137,7 +145,7 @@ class MacGradeBot:
     # allows user to update course grades (labs, assignments, midterm tests and exams, etc.)
     def editCourseInfo(self):
         # gets user inputted information
-        courseName = input("Enter the name of the course that you would like to edit here: ")
+        courseName = input("Enter the name of the course that you would like to edit here: ").upper()
         # references course profile creator main method
         self.courseInfo[courseName].courseProfileMain()
 
@@ -152,10 +160,10 @@ class MacGradeBot:
             creditsSum += self.courseInfo[courseName].courseCredits
 
         # calculates cumulative average (percentage) and displays to user
-        self.cumulativeAvg = round(averageSum / creditsSum * 100.0, 2)
+        self.cumulativeAvg = round(averageSum / creditsSum, 2)
         print("Your overall cumulative average is:", self.cumulativeAvg)
 
-    # saves user profile (binary and text files)
+    # saves user profile (binary and text files) for earlier program versions
     def saveToFile(self):
         userSaveBinary = [self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile,
                           self.courseNames, self.courseInfo, self.cumulativeAvg]
@@ -168,6 +176,7 @@ class MacGradeBot:
         textSave = open('{0}/{0}_MGBS.txt'.format(self.saveFile), 'w')
 
         text = "======================================= MacGradeBot ======================================\n" + \
+               str(self.botVersion) + \
                "\n------------------------------------------------------------------------------------------" + \
                "\nName: " + self.name + "\nUsername: " + self.username + "\nPassword: " + self.passwordConfirm + \
                "\nEmail: " + self.emailConfirm + "\nCumulative Average: " + str(self.cumulativeAvg) + \
@@ -185,23 +194,84 @@ class MacGradeBot:
                 courseInfo.courseCredits, round(courseInfo.courseAvg, 3), courseInfo.course12pGPA))
         textSave.close()
 
+    # saves user profile (binary and text files) for later patched program versions
+    def saveToFile1(self):
+        userSaveBinary = [self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile,
+                          self.courseNames, self.courseInfo, self.cumulativeAvg, self.botVersion]
+
+        # user save (binary file; .dat)
+        with open('{0}/{0}_MGBSX.dat'.format(self.saveFile), 'wb') as binarySave:
+            dump(userSaveBinary, binarySave)
+
+        # user save (text file; .txt)
+        textSave = open('{0}/{0}_MGBSX.txt'.format(self.saveFile), 'w')
+
+        text = "======================================= MacGradeBot ======================================\n" + \
+               str(self.botVersion) + \
+               "\n------------------------------------------------------------------------------------------" + \
+               "\nName: " + self.name + "\nUsername: " + self.username + "\nPassword: " + self.passwordConfirm + \
+               "\nEmail: " + self.emailConfirm + "\nCumulative Average: " + str(self.cumulativeAvg) + \
+               "\n------------------------------------------------------------------------------------------" + \
+               "\n\n" + "Course Name: [# Credits, Average, 12-Point GPA]\n--------------------------------" + \
+               str(self.botVersion)
+        textSave.write(text)
+        textSave.close()
+
+        # user save (text file; .txt)
+        textSave = open('{0}/{0}_MGBSX.txt'.format(self.saveFile), 'a')
+        for course in self.courseNames:
+            courseInfo = self.courseInfo[course]
+            textSave.write("\n{0} {1}:\t".format(course, courseInfo.courseCode))
+            textSave.write("Course Credits: {0}\tCourse Average: {1:<5}\tCourse 12p GPA: {2:<4}".format(
+                courseInfo.courseCredits, round(courseInfo.courseAvg, 3), courseInfo.course12pGPA))
+        textSave.close()
+
     # opens user profile (binary file)
     def openSaveFile(self, user):
-        # open user save (binary file; .dat)
-        with open('{0}/{0}_MGBS.dat'.format(user), 'rb') as save:
-            self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile, self.courseNames, \
-                self.courseInfo, self.cumulativeAvg = load(save)
+        # for earlier developmental versions
+        if self.botVersion == 0.0:
+            # open user save (binary file; .dat)
+            with open('{0}/{0}_MGBS.dat'.format(user), 'rb') as save:
+                # unpacks save tuple into multiple parameter entries
+                self.loadSaveData(*load(save))
+        # for later patched versions
+        else:
+            try:
+                # open user save (binary file; .dat)
+                with open('{0}/{0}_MGBSX.dat'.format(user), 'rb') as save:
+                    # unpacks save tuple into multiple parameter entries
+                    self.loadSaveData(*load(save))
+            # for later patched versions opening older files
+            except FileNotFoundError:
+                with open('{0}/{0}_MGBS.dat'.format(user), 'rb') as save:
+                    # unpacks save tuple into multiple parameter entries
+                    self.loadSaveData(*load(save))
+
+    # loads binary file save data into class attributes
+    def loadSaveData(self, name, username, passwordConfirm, emailConfirm, saveFile, courseNames, courseInfo,
+                     cumulativeAvg, botVersion=0.0):
+
+        if botVersion == 0.0:
+            botVersion = currentBotVersion
+
+        self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile, self.courseNames, \
+        self.courseInfo, self.cumulativeAvg, self.botVersion = name, username, passwordConfirm, emailConfirm, \
+                                                               saveFile, courseNames, courseInfo, cumulativeAvg, \
+                                                               botVersion
 
     # quit method
     def quit(self):
         print("saving student profile")
-        self.saveToFile()
+        if self.botVersion == 0:
+            self.saveToFile()
+        else:
+            self.saveToFile1()
         print("shutting down")
         quit()
 
 
 # import management code
 if __name__ == "__main__":
-    MacUser = MacGradeBot()
+    MacUser = MacGradeBot(currentBotVersion)
 else:
     pass
