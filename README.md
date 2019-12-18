@@ -12,3 +12,4 @@
 ## MacBotCourseProfileCreator Developmental Version Updates
 - 0.0.1: created basic skeleton outline code
 - 0.0.2: added extended functionality to basic skeleton code
+- 0.0.3: added extended functionaltiy for editing course items; enter to skip item course info you want to leave unchanged
