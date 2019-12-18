@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Library Version: 0.0.2 (Developmental)
+Program Library Version: 0.0.3 (Developmental)
 Last Updated: November 13th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Library Description
@@ -48,7 +48,7 @@ class MacBotCourseProfileCreator:
                     print('Index #: {} '.format(i), self.courseItemsMatrix[i])
 
                 itemIndex = int(input("Input the index # of the item you would like to edit here: "))
-                itemType, itemName, percentAchieved, percentageWeight = self.inputCourseItemInfo()
+                itemType, itemName, percentAchieved, percentageWeight = self.editCourseItemInfo(itemIndex)
 
                 self.editCourseItem(itemType, itemName, percentAchieved, percentageWeight, itemIndex)
 
@@ -65,12 +65,34 @@ class MacBotCourseProfileCreator:
                 print("exiting course profile for course", self.courseName)
                 break
 
-    # allows user to input item for given course item
+    # allows user to input information for given course item
     def inputCourseItemInfo(self):
         itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
         itemName = input("Enter the name of the item (e.g. minor assignment #1) here: ").lower().capitalize()
         percentAchieved = float(eval(input("Enter your percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
         percentageWeight = float(input("Enter the percentage weight of {} here: ".format(itemName)))
+        return itemType, itemName, percentAchieved, percentageWeight
+
+    # allows user to input information to edit in given course item
+    def editCourseItemInfo(self, itemIndex):
+        itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
+        if itemType == "":
+            itemType = self.courseItemsMatrix[itemIndex][0]
+
+        itemName = input("Enter the name of the item (e.g. minor assignment #1) here: ").lower().capitalize()
+        if itemName == "":
+            itemName = self.courseItemsMatrix[itemIndex][1]
+
+        try:
+            percentAchieved = float(eval(input("Enter your percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
+        except SyntaxError:
+            percentAchieved = self.courseItemsMatrix[itemIndex][2]
+
+        try:
+            percentageWeight = float(input("Enter the percentage weight of {} here: ".format(itemName)))
+        except ValueError:
+            percentageWeight = self.courseItemsMatrix[itemIndex][3]
+
         return itemType, itemName, percentAchieved, percentageWeight
 
     # adds course item information entry to course items matrix
@@ -86,6 +108,16 @@ class MacBotCourseProfileCreator:
 
         if itemType not in self.courseItemTypes:
             self.courseItemTypes.append(itemType)
+
+        # deletes unused item types from course item types list
+        for itemType in self.courseItemTypes:
+            itemTypeCount = 0
+            for item in self.courseItemsMatrix:
+                if item[0] == itemType:
+                    itemTypeCount += 1
+            if itemTypeCount == 0:
+                index = self.courseItemTypes.index(itemType)
+                del self.courseItemTypes[index]
 
     # calculated weighted course average from all added course items and associated percentage weights
     def calcCourseAvg(self):
@@ -145,3 +177,4 @@ class MacBotCourseProfileCreator:
     #     # course profile save (binary file; .dat)
     #     with open('{0}/{1}.dat'.format(saveUsername, self.courseName), 'wb') as binarySave:
     #         dump(courseSaveBinary, binarySave)
+
