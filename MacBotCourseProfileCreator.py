@@ -1,26 +1,31 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Library Version: 0.0.3 (Developmental)
-Last Updated: November 13th, 2019
+Program Library Version: 0.0.4 (Developmental)
+Last Updated: December 20th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Library Description
 [insert program library description]
 ------------------------------------------------------------------------------------------------------------------------
 """
-# from pickle import *
 
 
 # creates and manages profiles for each course added to MacGradeBot
 class MacBotCourseProfileCreator:
     def __init__(self, courseName, courseCode, courseCredits):
+        self.currentVersion = 0.1
+
         self.courseName = courseName
         self.courseCode = courseCode
         self.courseCredits = courseCredits
+
         # e.g. "Assignments", "Minor Assignments", "Major Assignments", "Projects", "Midterm Tests", "Final Exam"
         self.courseItemTypes = []
         # ["itemType", "itemName", "percent achieved", "percentage weight"]
         self.courseItemsMatrix = []
+
+        self.courseItemsMatrix2 = {}
+
         self.courseAvg = float()
         self.coursePercentAchieved = float()
         self.coursePercentWeighted = float()
@@ -33,24 +38,64 @@ class MacBotCourseProfileCreator:
 
     # main method controlling class instance
     def courseProfileMain(self):
+        print("Updating/Syncing Data...")
+        if len(self.courseItemsMatrix2) == 0:
+            self.dataUpdateSync()
+        print("Data Successfully Updated/Synced.")
+
         while True:
             print("Welcome to the MacBot Course Profile Creator for {}!".format(self.courseName))
             userChoice = input("Would you like to add, edit, average, calculate gpa, display course profile or exit?: ")
 
             # adds new item to course item matrix
-            if userChoice == self.userChoices[0]:
+            if (userChoice == self.userChoices[0]) and (self.currentVersion == 0.0):
                 itemType, itemName, percentAchieved, percentageWeight = self.inputCourseItemInfo()
                 self.addCourseItem(itemType, itemName, percentAchieved, percentageWeight)
 
+            # adds new item to reformatted course item matrix
+            elif (userChoice == self.userChoices[0]) and (self.currentVersion > 0.0):
+                itemType, itemName, percentAchieved, percentageWeight = self.inputCourseItemInfo()
+
+                # checks if item type is already in reformatted course item matrix
+                if itemType not in self.courseItemsMatrix2:
+                    # creates new dictionary for new item type
+                    self.courseItemsMatrix2[itemType] = {}
+
+                # creates new data entry for item name in item type dictionary
+                self.courseItemsMatrix2[itemType][itemName] = [percentAchieved, percentageWeight]
+
             # edits given item in course item matrix
-            elif userChoice == self.userChoices[1]:
+            elif (userChoice == self.userChoices[1]) and (self.currentVersion == 0.0):
                 for i in range(len(self.courseItemsMatrix)):
                     print('Index #: {} '.format(i), self.courseItemsMatrix[i])
 
                 itemIndex = int(input("Input the index # of the item you would like to edit here: "))
+
+                print("Current Item Info: ", self.courseItemsMatrix[itemIndex])
+
                 itemType, itemName, percentAchieved, percentageWeight = self.editCourseItemInfo(itemIndex)
 
                 self.editCourseItem(itemType, itemName, percentAchieved, percentageWeight, itemIndex)
+
+            # edits given item in reformatted course item matrix
+            elif (userChoice == self.userChoices[1]) and (self.currentVersion > 0.0):
+                for type in self.courseItemsMatrix2:
+                    for item in type:
+                        print(item)
+
+                oldItemType = input("Input the type of the item you would like to edit (e.g. midterm) here: ").lower()
+
+                while oldItemType not in self.courseItemsMatrix2:
+                    oldItemType = input("Sorry, but that item type does not exist. Please re-enter the type of the " +
+                                        "item you would like to edit (e.g. midterm) here: ").lower()
+
+                oldItemName = input("Input the item name (type {}) you would like to edit here: ".format(oldItemType))
+
+                while oldItemName not in self.courseItemsMatrix2[oldItemName]:
+                    oldItemName = input("Sorry, but that item type does not exist. Please re-enter the item name " +
+                                        "(type {}) you would like to edit here: ".format(oldItemType))
+
+                self.editCourseItem2(oldItemType, oldItemName, *self.editCourseItemInfo2(oldItemType, oldItemName))
 
             elif userChoice == self.userChoices[2]:
                 self.calcCourseAvg()
@@ -95,12 +140,41 @@ class MacBotCourseProfileCreator:
 
         return itemType, itemName, percentAchieved, percentageWeight
 
+    # allows user to input information to edit in given course item (for reformatted data entries)
+    def editCourseItemInfo2(self, oldItemType, oldItemName):
+        itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
+        if itemType == "":
+            itemType = oldItemType
+
+        itemName = input("Enter the name of the item (e.g. minor assignment #1) here: ").lower().capitalize()
+        if itemName == "":
+            itemName = oldItemName
+
+        try:
+            percentAchieved = float(eval(input("Enter your percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
+        except SyntaxError:
+            percentAchieved = self.courseItemsMatrix2[oldItemName][oldItemType][0]
+
+        try:
+            percentageWeight = float(eval(input("Enter your percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
+        except SyntaxError:
+            percentageWeight = self.courseItemsMatrix2[oldItemName][oldItemType][1]
+
+        return itemType, itemName, percentAchieved, percentageWeight
+
     # adds course item information entry to course items matrix
     def addCourseItem(self, itemType, itemName, percentAchieved=0.00, percentageWeight=0.00):
         self.courseItemsMatrix.append([itemType, itemName, percentAchieved, percentageWeight])
 
         if itemType not in self.courseItemTypes:
             self.courseItemTypes.append(itemType)
+
+    # adds course item information entry to reformatted course items matrix
+    def addCourseItem2(self, itemType, itemName, percentAchieved=0.00, percentWeight=0.00):
+        if itemType not in self.courseItemsMatrix2:
+            self.courseItemsMatrix2[itemType] = {}
+
+        self.courseItemsMatrix2[itemType][itemName] = [percentAchieved, percentWeight]
 
     # edits course item information entry in course items matrix
     def editCourseItem(self, itemType, itemName, percentAchived, percentageWeight, itemIndex):
@@ -118,6 +192,23 @@ class MacBotCourseProfileCreator:
             if itemTypeCount == 0:
                 index = self.courseItemTypes.index(itemType)
                 del self.courseItemTypes[index]
+
+    # edits course item information entry in reformatted course items matrix
+    def editCourseItem2(self, oldItemType, oldItemName, itemType, itemName, percentAchieved, percentageWeight):
+        # checks if itemType does not current exist in the course items matrix (see if user changed itemType)
+        if itemType not in self.courseItemsMatrix2:
+            self.courseItemsMatrix2[itemType] = {}
+
+            # deletes old entry from course items matrix
+            del self.courseItemsMatrix2[oldItemType][oldItemName]
+
+        # creates new entry in course items matrix with updated course item info
+        self.courseItemsMatrix2[itemType][itemName] = [percentAchieved, percentageWeight]
+
+        # deletes unused item types from reformatted course items info matrix
+        for item in self.courseItemsMatrix2:
+            if len(item) == 0:
+                del self.courseItemsMatrix2[item]
 
     # calculated weighted course average from all added course items and associated percentage weights
     def calcCourseAvg(self):
@@ -161,20 +252,13 @@ class MacBotCourseProfileCreator:
                                                                                               item[3]))
             print("\n--------------------------------")
 
-    # # loads course profile info from user save (.dat file)
-    # def loadCourseProfile(self, saveUsername, courseName):
-    #     with open('{0}/{1}.dat'.format(saveUsername, courseName), 'rb') as courseSave:
-    #         self.courseName, self.courseCode, self.courseCredits, self.courseItemTypes, self.courseItemsMatrix, \
-    #             self.courseAvg, self.coursePercentAchieved, self.coursePercentWeighted, \
-    #             self.course12pGPA = load(courseSave)
-    #
-    # # saves course profile info into user save (.dat file) and user text save (.txt file); overwrites existing file(s)
-    # def saveCourseProfile(self, saveUsername):
-    #     courseSaveBinary = [self.courseName, self.courseCode, self.courseCredits, self.courseItemTypes,
-    #                         self.courseItemsMatrix, self.courseAvg, self.coursePercentAchieved,
-    #                         self.coursePercentWeighted, self.course12pGPA]
-    #
-    #     # course profile save (binary file; .dat)
-    #     with open('{0}/{1}.dat'.format(saveUsername, self.courseName), 'wb') as binarySave:
-    #         dump(courseSaveBinary, binarySave)
+    # updates/syncs data between data matrices (original and reformatted)
+    def dataUpdateSync(self):
+        for entry in self.courseItemsMatrix:
+            # checks if item type exists in reformatted course item matrix
+            if entry[0] not in self.courseItemsMatrix2:
+                self.courseItemsMatrix2[entry[0]] = {}
+
+            if entry[1] not in self.courseItemsMatrix2[entry[0]]:
+                self.courseItemsMatrix2[entry[0]][entry[1]] = [entry[2], entry[3]]
 
