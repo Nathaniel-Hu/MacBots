@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Library Version: 0.0.4 (Developmental)
+Program Library Version: 0.0.5 (Developmental)
 Last Updated: December 20th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Library Description
@@ -209,6 +209,31 @@ class MacBotCourseProfileCreator:
         for item in self.courseItemsMatrix2:
             if len(item) == 0:
                 del self.courseItemsMatrix2[item]
+
+    # deletes course item information entry from course items list
+    def deleteCourseItem(self, itemType, itemName):
+        for i in range(len(self.courseItemsMatrix)):
+            if (self.courseItemsMatrix[i][0] == itemType) and (self.courseItemsMatrix[i][1] == itemName):
+                del self.courseItemsMatrix[i]
+                break
+
+        # deletes unused item types from course item types list
+        for itemType in self.courseItemTypes:
+            itemTypeCount = 0
+            for item in self.courseItemsMatrix:
+                if item[0] == itemType:
+                    itemTypeCount += 1
+            if itemTypeCount == 0:
+                index = self.courseItemTypes.index(itemType)
+                del self.courseItemTypes[index]
+
+    # deletes course item information entry from reformatted course items list
+    def deleteCourseItem2(self, itemType, itemName):
+        del self.courseItemsMatrix2[itemType][itemName]
+
+        # deletes unused item types from course items matrix
+        if len(self.courseItemsMatrix2[itemType]) == 0:
+            del self.courseItemsMatrix2[itemType]
 
     # calculated weighted course average from all added course items and associated percentage weights
     def calcCourseAvg(self):
