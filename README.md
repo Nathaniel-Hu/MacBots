@@ -14,5 +14,6 @@
 - 0.0.2: added extended functionality to basic skeleton code
 - 0.0.3: added extended functionaltiy for editing course items; enter to skip item course info you want to leave unchanged
 - 0.0.4: added extended functionality for revamping/updating data storage format; added data syncing function to save data in both forms (original and reformatted), allowing for data format conversions between preceding and succeeding program versions
+- 0.0.5: added extended functionality for deleting data entries in course item info matrix
 
 Last Updated: December 20th, 2019
