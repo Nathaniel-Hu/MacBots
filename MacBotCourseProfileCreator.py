@@ -1,8 +1,8 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Library Version: 0.0.5 (Developmental)
-Last Updated: December 20th, 2019
+Program Library Version: 0.1.0 (Developmental)
+Last Updated: December 21th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Library Description
 [insert program library description]
@@ -31,8 +31,8 @@ class MacBotCourseProfileCreator:
         self.coursePercentWeighted = float()
         self.course12pGPA = float()
         # percentage to 12-point GPA converter information
-        self.percentGPA = [90.0, 85.0, 80.0, 77.0, 73.0, 70.0, 67.0, 63.0, 60.0, 57.0, 53.0, 50.0, 0.0]
-        self.gradeGPA = [12.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0]
+        self.percentGPA = (90.0, 85.0, 80.0, 77.0, 73.0, 70.0, 67.0, 63.0, 60.0, 57.0, 53.0, 50.0, 0.0)
+        self.gradeGPA = (12.0, 11.0, 10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0)
         # user choices (for use by courseProfileMain method)
         self.userChoices = ['add', 'edit', 'avg', 'gpa', 'display', 'exit']
 
@@ -97,14 +97,25 @@ class MacBotCourseProfileCreator:
 
                 self.editCourseItem2(oldItemType, oldItemName, *self.editCourseItemInfo2(oldItemType, oldItemName))
 
-            elif userChoice == self.userChoices[2]:
+            # calculates course average with original format data
+            elif (userChoice == self.userChoices[2]) and (self.currentVersion == 0.0):
                 self.calcCourseAvg()
 
+            # calculates course average with updated format data
+            elif (userChoice == self.userChoices[2]) and (self.currentVersion > 0.0):
+                self.calcCourseAvg2()
+
+            # calculates course 12-point GPA
             elif userChoice == self.userChoices[3]:
                 self.calcCourse12pGPA()
 
-            elif userChoice == self.userChoices[4]:
+            # displays course profile with original format data
+            elif (userChoice == self.userChoices[4]) and (self.currentVersion == 0.0):
                 self.displayCourseProfile()
+
+            # displays course profile with updated format data
+            elif (userChoice == self.userChoices[4]) and (self.currentVersion > 0.0):
+                self.displayCourseProfile2()
 
             else:
                 print("exiting course profile for course", self.courseName)
@@ -235,17 +246,32 @@ class MacBotCourseProfileCreator:
         if len(self.courseItemsMatrix2[itemType]) == 0:
             del self.courseItemsMatrix2[itemType]
 
-    # calculated weighted course average from all added course items and associated percentage weights
+    # calculates weighted course average from all added course items and associated percentage weights (original format)
     def calcCourseAvg(self):
         self.coursePercentAchieved, self.coursePercentWeighted = 0, 0
 
         for courseItem in self.courseItemsMatrix:
-            self.coursePercentAchieved += (courseItem[2] * courseItem[3]) / 100
+            # percentage achieved * percentage weight of each item
+            self.coursePercentAchieved += (courseItem[2] * courseItem[3])
+            # percentage weight of each item
             self.coursePercentWeighted += courseItem[3]
 
-        self.courseAvg = self.coursePercentAchieved / self.coursePercentWeighted * 100
+        self.courseAvg = self.coursePercentAchieved / self.coursePercentWeighted
 
-    # calculates course 12-point GPA
+    # calculates weighted course average from all added course items and associated percentage weights (updated format)
+    def calcCourseAvg2(self):
+        self.coursePercentAchieved, self.coursePercentWeighted = 0, 0
+
+        for courseType in self.courseItemsMatrix2:
+            for courseItem in courseType:
+                # percent achieved * percent weight per item
+                self.coursePercentAchieved += courseItem[0] * courseItem[1]
+                # percent weight per item
+                self.coursePercentWeighted += courseItem[1]
+
+        self.courseAvg = self.coursePercentAchieved / self.coursePercentWeighted
+
+    # calculates course 12-point GPA (original data format)
     def calcCourse12pGPA(self):
         for p in range(13):
             if self.courseAvg >= self.percentGPA[p]:
@@ -253,14 +279,42 @@ class MacBotCourseProfileCreator:
                 break
 
     # returns course average
-    def courseAvg(self):
+    def getCourseAvg(self):
         return self.courseAvg
 
+    # returns course 12p GPA
+    def getCourse12pGPA(self):
+        return self.course12pGPA
+
+    # returns course code
+    def getCourseCode(self):
+        return self.courseCode
+
     # returns # of course credits
-    def courseCredits(self):
+    def getCourseCredits(self):
         return self.courseCredits
 
-    # displays course profile overview
+    # returns course items types list
+    def getCourseItemTypes(self):
+        return self.courseItemTypes
+
+    # returns course items matrix (original data formatting)
+    def getCourseItemsMatrix(self):
+        return self.courseItemsMatrix
+
+    # returns course items matrix (updated formatting)
+    def getCourseItemsMatrix2(self):
+        return self.courseItemsMatrix2
+
+    # returns percent achieved (so far)
+    def getCoursePercentAchieved(self):
+        return self.coursePercentAchieved
+
+    # returns percent weight (so far)
+    def getCoursePercentWeighted(self):
+        return self.coursePercentWeighted
+
+    # displays course profile overview with original data formatting
     def displayCourseProfile(self):
         print("Course Name:", self.courseName, "\nCourse Code: ", self.courseCode, "\nCourse Credits: ",
               self.courseCredits, "\n\nCourse Average: ", round(self.courseAvg, 3), "\nCourse Percent Achieved:",
@@ -275,6 +329,23 @@ class MacBotCourseProfileCreator:
                 if item[0] == itemType:
                     print(item[1], "\tPercent Achieved: {0:<5}\t\tPercent Weight: {1}".format(round(item[2], 3),
                                                                                               item[3]))
+            print("\n--------------------------------")
+
+    # display course profile overview with updated data formatting
+    def displayCourseProfile2(self):
+        print("Course Name:", self.courseName, "\nCourse Code: ", self.courseCode, "\nCourse Credits: ",
+              self.courseCredits, "\n\nCourse Average: ", round(self.courseAvg, 3), "\nCourse Percent Achieved:",
+              round(self.coursePercentAchieved, 3), "\nCourse Percent Weighted:", self.coursePercentWeighted,
+              "\n\nCourse 12-Point GPA:", self.course12pGPA)
+
+        print("--------------------------------\nCourse Items:\n")
+
+        for itemType in self.courseItemsMatrix2:
+            print(itemType.capitalize())
+            for itemName in self.courseItemsMatrix2[itemType]:
+                print(itemName, "\tPercent Achieved: {0: <5}\t\tPercent Weight: {1}".format(
+                    round(self.courseItemsMatrix2[itemType][itemName][0], 3),
+                    self.courseItemsMatrix2[itemType][itemName][1]))
             print("\n--------------------------------")
 
     # updates/syncs data between data matrices (original and reformatted)
