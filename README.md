@@ -1,6 +1,6 @@
 # MacBots
 - repository for code for various MacBots and associated (support) files
-- Note: versions 0.0.i are developmental versions of MacBots code
+- Note: versions 0.i.i are developmental versions of MacBots code
 
 ## MacGradeBot Developmental Version Updates
 - 0.0.1: created basic skeleton outline code
@@ -9,6 +9,8 @@
 - 0.0.4: added basic conversion software to allow for data compatibility between different versions of this code
 - 0.0.5: added extended functionality to code (course display and save student profile data while running main loop)
 
+- 0.1.0: added extended functionality (duplicate methods) for processing different versions of data formatting (original and updated); added data conversion/updating method to update course profiles; altered/duplicated data saving methods to be able to process saved data from older and conversion version saves (\_MGBS.dat and \_MGBSXC.dat)
+
 ## MacBotCourseProfileCreator Developmental Version Updates
 - 0.0.1: created basic skeleton outline code
 - 0.0.2: added extended functionality to basic skeleton code
@@ -16,4 +18,6 @@
 - 0.0.4: added extended functionality for revamping/updating data storage format; added data syncing function to save data in both forms (original and reformatted), allowing for data format conversions between preceding and succeeding program versions
 - 0.0.5: added extended functionality for deleting data entries in course item info matrix
 
-Last Updated: December 20th, 2019
+- 0.1.0: added extended functionality (duplicate methods) for processing both older and new versions of formatted data (original and updated); added method to create new course profiles with updated data formatting/attributes
+
+Last Updated: December 21th, 2019
