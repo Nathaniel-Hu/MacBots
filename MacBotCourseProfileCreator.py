@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Library Version: 0.1.1 (Developmental)
+Program Library Version: 0.1.2 (Developmental)
 Last Updated: December 21th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Library Description
@@ -13,7 +13,7 @@ Program Library Description
 # creates and manages profiles for each course added to MacGradeBot
 class MacBotCourseProfileCreator:
     def __init__(self, courseName, courseCode, courseCredits):
-        self.currentVersion = 1.1
+        self.currentVersion = 1.2
 
         self.courseName = courseName
         self.courseCode = courseCode
@@ -90,11 +90,13 @@ class MacBotCourseProfileCreator:
     # allows user to input information for given course item
     def inputCourseItemInfo(self):
         itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
+
         itemName = input("Enter the name of the item (e.g. minor assignment #1) here: ").lower().capitalize()
 
-        while itemName in self.courseItemsMatrix[itemType]:
-            itemName = input("Sorry, but an item with that same name already exists under the type {}. Please " +
-                             "re-enter a different item name here: ".format(itemType))
+        if itemType in self.courseItemsMatrix:
+            while itemName in self.courseItemsMatrix[itemType]:
+                itemName = input("Sorry, but an item with that same name already exists under the type {}. Please " +
+                                 "re-enter a different item name here: ".format(itemType))
 
         percentAchieved = float(eval(input("Enter your percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
         percentageWeight = float(eval(input("Enter the percentage weight of {} here: ".format(itemName))))
@@ -113,12 +115,12 @@ class MacBotCourseProfileCreator:
         try:
             percentAchieved = float(eval(input("Enter your item percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
         except SyntaxError:
-            percentAchieved = self.courseItemsMatrix[oldItemName][oldItemType][0]
+            percentAchieved = self.courseItemsMatrix[oldItemType][oldItemName][0]
 
         try:
             percentWeight = float(eval(input("Enter your item percent weight (e.g. 100.0, 6/8 * 100) here: ")))
         except SyntaxError:
-            percentWeight = self.courseItemsMatrix[oldItemName][oldItemType][1]
+            percentWeight = self.courseItemsMatrix[oldItemType][oldItemName][1]
 
         return itemType, itemName, percentAchieved, percentWeight
 
@@ -157,8 +159,8 @@ class MacBotCourseProfileCreator:
         if itemType not in self.courseItemsMatrix:
             self.courseItemsMatrix[itemType] = {}
 
-            # deletes old entry from course items matrix
-            del self.courseItemsMatrix[oldItemType][oldItemName]
+        # deletes old entry from course items matrix
+        del self.courseItemsMatrix[oldItemType][oldItemName]
 
         # creates new entry in course items matrix with updated course item info
         self.courseItemsMatrix[itemType][itemName] = [percentAchieved, percentageWeight]
