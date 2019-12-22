@@ -1,25 +1,24 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.1.0 (Developmental)
-Last Updated: December 16th, 2019
+Program Version: 0.1.1 (Developmental)
+Last Updated: December 21th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
 [insert program description]
 ------------------------------------------------------------------------------------------------------------------------
 """
-# this controls program data updating/patching functions/mechanisms in the program
-currentBotVersion = 0.1
-
 from time import *
 from pickle import *
-
 from MacBotCourseProfileCreator import *
+
+# this controls program data updating/patching functions/mechanisms in the program
+currentBotVersion = 1.1
 
 
 class MacGradeBot:
     # instantiation of class into new student profile object
-    def __init__(self, botVersion=0.0):
+    def __init__(self, botVersion):
         # student user profile information
         self.name = str()
         self.username = str()
@@ -35,8 +34,11 @@ class MacGradeBot:
         # original format data matrix
         self.courseInfo = {}
         # updated format data matrix
-        self.courseInfo2 = {}
+        # self.courseInfo2 = {}
+
+        # cumulative avg/GPA
         self.cumulativeAvg = float()
+        self.cumulativeGPA = float()
 
         userChoice = input("Login or Sign Up: ")
         if userChoice.lower() == 'sign up':
@@ -49,23 +51,16 @@ class MacGradeBot:
 
     # main method
     def main(self):
-        userChoices = ['display', 'add', 'edit', 'avg', 'save', 'quit']
+        userChoices = ('display', 'add', 'edit', 'avg', 'save', 'quit')
 
-        print("Checking data...")
+        print("Here is your current MacGradeBot student profile:\nCurrent Courses: ", self.courseNames, "\nCourse Info")
 
-        # allows user to decide whether they would like to update their data or not
-        if len(self.courseInfo) > len(self.courseInfo2):
-            update = input("Your data is not completely updated. Would you like to update all of your course " +
-                           "information?\nPlease input yes or no here: ").lower()
+        indent = len(max(self.courseNames)) + 3
 
-            while (update != "yes") and (update != "no"):
-                update = input("Please re-enter a valid input (yes/no) here: ").lower()
+        for course in self.courseInfo:
+            print(course + ":" + " "*(indent - len(course)) + str(self.courseInfo[course]))
 
-            if update == "yes":
-                self.updateCourseProfiles()
-
-        print("Here is your current MacGradeBot student profile:\n", str(self.courseNames), "\n", str(self.courseInfo),
-              "\n", str(self.cumulativeAvg))
+        print("Current Cumulative Average:", self.cumulativeAvg, "\nCurrent Cumulative GPA:", self.cumulativeGPA)
 
         while True:
             print("MacGradeBot Program")
@@ -183,19 +178,12 @@ class MacGradeBot:
         # gets user inputted information
         courseName = input("Enter the name of the course that you would like to edit here: ").upper()
 
-        # safeguard code to update outdated data into reformatted data
-        try:
-            if self.courseInfo[courseName].courseItemsMatrix2:
-                print(self.courseInfo[courseName].courseItemsMatrix2)
-        except AttributeError:
-            self.updateCourseProfile(courseName)
-
         return courseName
 
     # opens course profile
     def openCourseProfile(self, courseName):
         # references course profile creator main method
-        self.courseInfo2[courseName].courseProfileMain()
+        self.courseInfo[courseName].courseProfileMain()
 
     # calculates cumulative average
     def calcCumulativeAvg(self):
@@ -211,20 +199,34 @@ class MacGradeBot:
         self.cumulativeAvg = round(averageSum / creditsSum, 2)
         print("Your overall cumulative average is:", self.cumulativeAvg)
 
-    # saves user profile (binary and text files) for earlier program versions
+    # calculates cumulative GPA
+    def calcCumlativeGPA(self):
+        gpaSum = float()
+        creditsSum = int()
+
+        # goes through each course, sums gpa times course credits, and course credits
+        for courseName in self.courseNames:
+            gpaSum += self.courseInfo[courseName].course12pGPA * self.courseInfo[courseName].courseCredits
+            creditsSum += self.courseInfo[courseName].courseCredits
+
+        # calculates cumulative GPA (12-point) and displays to user
+        self.cumulativeGPA = round(gpaSum / creditsSum, 2)
+        print("Your overall cumulative GPA is:", self.cumulativeGPA)
+
+    # saves user profile (binary and text files) for later patched program versions
     def saveToFile(self):
         userSaveBinary = [self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile,
-                          self.courseNames, self.courseInfo, self.cumulativeAvg]
+                          self.courseNames, self.courseInfo, self.cumulativeAvg, self.cumulativeGPA, self.botVersion]
 
         # user save (binary file; .dat)
-        with open('{0}/{0}_MGBS.dat'.format(self.saveFile), 'wb') as binarySave:
+        with open('{0}/{0}_MGBSX.dat'.format(self.saveFile), 'wb') as binarySave:
             dump(userSaveBinary, binarySave)
 
         # user save (text file; .txt)
-        textSave = open('{0}/{0}_MGBS.txt'.format(self.saveFile), 'w')
+        textSave = open('{0}/{0}_MGBSX.txt'.format(self.saveFile), 'w')
 
         text = "======================================= MacGradeBot ======================================\n" + \
-               str(self.botVersion) + \
+               "Current Version: " + str(self.botVersion) + \
                "\n------------------------------------------------------------------------------------------" + \
                "\nName: " + self.name + "\nUsername: " + self.username + "\nPassword: " + self.passwordConfirm + \
                "\nEmail: " + self.emailConfirm + "\nCumulative Average: " + str(self.cumulativeAvg) + \
@@ -234,40 +236,8 @@ class MacGradeBot:
         textSave.close()
 
         # user save (text file; .txt)
-        textSave = open('{0}/{0}_MGBS.txt'.format(self.saveFile), 'a')
-        for course in self.courseNames:
-            courseInfo = self.courseInfo[course]
-            textSave.write("\n{0} {1}:\t".format(course, courseInfo.courseCode))
-            textSave.write("Course Credits: {0}\tCourse Average: {1:<5}\tCourse 12p GPA: {2:<4}".format(
-                courseInfo.courseCredits, round(courseInfo.courseAvg, 3), courseInfo.course12pGPA))
-        textSave.close()
-
-    # saves user profile (binary and text files) for later patched program versions
-    def saveToFile1(self):
-        userSaveBinary = [self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile,
-                          self.courseNames, self.courseInfo, self.courseInfo2, self.cumulativeAvg, self.botVersion]
-
-        # user save (binary file; .dat)
-        with open('{0}/{0}_MGBSXC.dat'.format(self.saveFile), 'wb') as binarySave:
-            dump(userSaveBinary, binarySave)
-
-        # user save (text file; .txt)
-        textSave = open('{0}/{0}_MGBSXC.txt'.format(self.saveFile), 'w')
-
-        text = "======================================= MacGradeBot ======================================\n" + \
-               str(self.botVersion) + \
-               "\n------------------------------------------------------------------------------------------" + \
-               "\nName: " + self.name + "\nUsername: " + self.username + "\nPassword: " + self.passwordConfirm + \
-               "\nEmail: " + self.emailConfirm + "\nCumulative Average: " + str(self.cumulativeAvg) + \
-               "\n------------------------------------------------------------------------------------------" + \
-               "\n\n" + "Course Name: [# Credits, Average, 12-Point GPA]\n--------------------------------" + \
-               str(self.botVersion)
-        textSave.write(text)
-        textSave.close()
-
-        # user save (text file; .txt)
-        textSave = open('{0}/{0}_MGBSXC.txt'.format(self.saveFile), 'a')
-        courses = self.courseInfo2
+        textSave = open('{0}/{0}_MGBSX.txt'.format(self.saveFile), 'a')
+        courses = self.courseInfo
 
         for course in courses:
             textSave.write("\n{0} {1}:\t".format(course, courses[course].courseCode))
@@ -280,72 +250,79 @@ class MacGradeBot:
         print("saving student profile")
         self.saveToFile()
 
-        if self.botVersion > 0.0:
-            self.saveToFile1()
-
     # opens user profile (binary file)
     def openSaveFile(self, user):
         # for earlier developmental versions
-        if self.botVersion == 0.0:
+        if self.botVersion == 1.0:
             # open user save (binary file; .dat)
-            with open('{0}/{0}_MGBS.dat'.format(user), 'rb') as save:
+            with open('{0}/{0}_MGBSXC.dat'.format(user), 'rb') as save:
                 # unpacks save tuple into multiple parameter entries
                 self.loadSaveData(*load(save))
         # for later patched versions
         else:
             try:
                 # open user save (binary file; .dat)
-                with open('{0}/{0}_MGBSXC.dat'.format(user), 'rb') as save:
+                with open('{0}/{0}_MGBSX.dat'.format(user), 'rb') as save:
                     # unpacks save tuple into multiple parameter entries
                     self.loadSaveData2(*load(save))
             # for later patched versions opening older files
             except FileNotFoundError:
-                with open('{0}/{0}_MGBS.dat'.format(user), 'rb') as save:
+                with open('{0}/{0}_MGBSXC.dat'.format(user), 'rb') as save:
                     # unpacks save tuple into multiple parameter entries
                     self.loadSaveData(*load(save))
 
-    # loads binary file save data into class attributes (from older files pre 0.0.6)
+    # loads binary file save data into class attributes (from _MGBSXC.dat save files)
+    # FIXME remove this section for later versions of this code
     def loadSaveData(self, name, username, passwordConfirm, emailConfirm, saveFile, courseNames, courseInfo,
-                     cumulativeAvg, botVersion=0.0):
+                     courseInfo2, cumulativeAvg, botVersion):  # note: courseInfo data is not used (is trashed)
 
-        if botVersion == 0.0:
-            botVersion = currentBotVersion
+        self.updateCourseProfiles(courseInfo2)
 
+        if botVersion > self.botVersion:
+            self.botVersion = botVersion
+
+        # transfer save data into class attributes
         self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile, self.courseNames, \
-        self.courseInfo, self.cumulativeAvg, self.botVersion = name, username, passwordConfirm, emailConfirm, \
-            saveFile, courseNames, courseInfo, cumulativeAvg, botVersion
+            self.cumulativeAvg = name, username, passwordConfirm, emailConfirm, saveFile, courseNames, cumulativeAvg
 
-    # loads binary file save data into class attributes (for convertible files 0.0.6)
+        # calculates GPA (since there is no previously calculated cumulative GPA value to import from save file)
+        self.calcCumlativeGPA()
+
+    # loads binary file save data into class attributes (for _MGBSX.dat save files)
     def loadSaveData2(self, name, username, passwordConfirm, emailConfirm, saveFile, courseNames, courseInfo,
-                     courseInfo2, cumulativeAvg, botVersion):
+                      cumulativeAvg, cumulativeGPA, botVersion):
 
+        if botVersion > self.botVersion:
+            self.botVersion = botVersion
+
+        # transfer save data into class attributes
         self.name, self.username, self.passwordConfirm, self.emailConfirm, self.saveFile, self.courseNames, \
-        self.courseInfo, self.courseInfo2, self.cumulativeAvg, self.botVersion = name, username, passwordConfirm, \
-            emailConfirm, saveFile, courseNames, courseInfo, courseInfo2, cumulativeAvg, botVersion
+            self.courseInfo, self.cumulativeAvg, self.cumulativeGPA = name, username, passwordConfirm, emailConfirm, \
+            saveFile, courseNames, courseInfo, cumulativeAvg, cumulativeGPA
 
     # takes data from old class instance and creates new updated class instance with same data
-    def updateCourseProfile(self, courseName):
+    def updateCourseProfile(self, courseName, courseInfoMatrix):
         # old class instance --> self.courseInfo[courseName]
-        courseCode = self.courseInfo[courseName].getCourseCode()
-        courseCredits = self.courseInfo[courseName].getCourseCredits()
+        courseCode = courseInfoMatrix[courseName].getCourseCode()
+        courseCredits = courseInfoMatrix[courseName].getCourseCredits()
 
-        self.courseInfo2[courseName] = MacBotCourseProfileCreator(courseName, courseCode, courseCredits)
+        self.courseInfo[courseName] = MacBotCourseProfileCreator(courseName, courseCode, courseCredits)
 
         # transferring old data over to new class object
-        self.courseInfo2[courseName].courseItemTypes = self.courseInfo[courseName].getCourseItemTypes()
-        self.courseInfo2[courseName].courseItemsMatrix = self.courseInfo[courseName].getCourseItemsMatrix()
+        self.courseInfo[courseName].courseItemsMatrix = courseInfoMatrix[courseName].courseItemsMatrix2
 
-        self.courseInfo2[courseName].courseAvg = self.courseInfo[courseName].getCourseAvg()
-        self.courseInfo2[courseName].coursePercentAchieved = self.courseInfo[courseName].getCoursePercentAchieved()
-        self.courseInfo2[courseName].coursePercentWeighted = self.courseInfo[courseName].getCoursePercentWeighted()
-        self.courseInfo2[courseName].course12pGPA = self.courseInfo[courseName].getCourse12pGPA()
+        self.courseInfo[courseName].courseAvg = courseInfoMatrix[courseName].getCourseAvg()
+        self.courseInfo[courseName].coursePercentAchieved = courseInfoMatrix[courseName].getCoursePercentAchieved()
+        self.courseInfo[courseName].coursePercentWeighted = courseInfoMatrix[courseName].getCoursePercentWeighted()
+        self.courseInfo[courseName].course12pGPA = courseInfoMatrix[courseName].getCourse12pGPA()
 
     # takes data from old class instances and creates new updated class instances with same data
-    def updateCourseProfiles(self):
-        for course in self.courseNames:
+    # FIXME update this later to only transfer each data entry's info rather than entire matrix
+    def updateCourseProfiles(self, oldCourseInfoMatrix):
+        for course in oldCourseInfoMatrix:
             # update course profile only it has not already been updated
-            if course not in self.courseInfo2:
-                self.updateCourseProfile(course)
+            if course not in self.courseInfo:
+                self.updateCourseProfile(course, oldCourseInfoMatrix)
 
     # quit method
     def quit(self):
