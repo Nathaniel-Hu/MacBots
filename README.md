@@ -19,5 +19,6 @@
 - 0.0.5: added extended functionality for deleting data entries in course item info matrix
 
 - 0.1.0: added extended functionality (duplicate methods) for processing both older and new versions of formatted data (original and updated); added method to create new course profiles with updated data formatting/attributes
+- 0.1.1: removed duplicate methods for processing both older and newer versions of formatted data; updated data formatting; average and GPA calculating methods now display results after calculating; can process both \_MGBSXC.dat and \_MGBSX.dat files, but only creates save files ending in \_MGBSX.dat
 
 Last Updated: December 21th, 2019
