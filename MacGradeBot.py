@@ -1,7 +1,7 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.1.1 (Developmental)
+Program Version: 0.1.2 (Developmental)
 Last Updated: December 21th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
@@ -13,7 +13,7 @@ from pickle import *
 from MacBotCourseProfileCreator import *
 
 # this controls program data updating/patching functions/mechanisms in the program
-currentBotVersion = 1.1
+currentBotVersion = 1.2
 
 
 class MacGradeBot:
@@ -51,7 +51,7 @@ class MacGradeBot:
 
     # main method
     def main(self):
-        userChoices = ('display', 'add', 'edit', 'avg', 'save', 'quit')
+        userChoices = ('display', 'add', 'edit', 'avg', 'gpa', 'save', 'quit')
 
         print("Here is your current MacGradeBot student profile:\nCurrent Courses: ", self.courseNames, "\nCourse Info")
 
@@ -65,8 +65,8 @@ class MacGradeBot:
         while True:
             print("MacGradeBot Program")
             userChoice = input("Hello, would you like to display current courses (display), add/edit a course " +
-                               "(add/edit), calculate your cumulative average (avg), save your data (save) or quit " +
-                               "(quit): ")
+                               "(add/edit), calculate your cumulative average (avg) or gpa (gpa), save your data " +
+                               "(save) or quit (quit): ")
 
             # exception handling for user choice inputs
             while userChoice not in userChoices:
@@ -88,7 +88,12 @@ class MacGradeBot:
             elif userChoice == userChoices[3]:
                 self.calcCumulativeAvg()
 
+            # calculates course GPA
             elif userChoice == userChoices[4]:
+                self.calcCumlativeGPA()
+
+            # saves all changes to course info for all existing course profiles
+            elif userChoice == userChoices[5]:
                 self.saveController()
 
             # quits the program (add option later asking if user wants to save edits or not)
@@ -230,6 +235,7 @@ class MacGradeBot:
                "\n------------------------------------------------------------------------------------------" + \
                "\nName: " + self.name + "\nUsername: " + self.username + "\nPassword: " + self.passwordConfirm + \
                "\nEmail: " + self.emailConfirm + "\nCumulative Average: " + str(self.cumulativeAvg) + \
+               "\nCumulative GPA: " + str(self.cumulativeGPA) + \
                "\n------------------------------------------------------------------------------------------" + \
                "\n\n" + "Course Name: [# Credits, Average, 12-Point GPA]\n--------------------------------"
         textSave.write(text)
