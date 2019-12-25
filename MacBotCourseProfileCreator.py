@@ -1,8 +1,8 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Library Version: 0.1.2 (Developmental)
-Last Updated: December 21th, 2019
+Program Library Version: 0.1.3 (Developmental)
+Last Updated: December 24th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Library Description
 [insert program library description]
@@ -13,7 +13,7 @@ Program Library Description
 # creates and manages profiles for each course added to MacGradeBot
 class MacBotCourseProfileCreator:
     def __init__(self, courseName, courseCode, courseCredits):
-        self.currentVersion = 1.2
+        self.currentVersion = 1.3
 
         self.courseName = courseName
         self.courseCode = courseCode
@@ -36,7 +36,9 @@ class MacBotCourseProfileCreator:
     def courseProfileMain(self):
         while True:
             # input user choice (with while loop exception handling)
-            print("Welcome to the MacBot Course Profile Creator for {}!".format(self.courseName))
+            print("\n================================ MacBot Course Profile Creator =================================" +
+                  "\n\nWelcome to the MacBot Course Profile Creator for {}!".format(self.courseName) +
+                  "\n---------------------------------------------------------------------------------")
             userChoice = input("Would you like to add, edit, delete, average, calculate gpa, display course profile " +
                                "or exit?: ").lower()
 
@@ -52,12 +54,6 @@ class MacBotCourseProfileCreator:
 
             # edits given item in course item matrix
             elif userChoice == self.userChoices[1]:
-                # prints out all items in course items matrix
-                for itemType in self.courseItemsMatrix:
-                    print(itemType)
-                    for item in self.courseItemsMatrix[itemType]:
-                        print(item)
-
                 # references edit delete course item info method (EDN = 0; edit course item)
                 oldItemType, oldItemName = self.editDeleteCourseItemInfo(0)
 
@@ -90,50 +86,110 @@ class MacBotCourseProfileCreator:
     # allows user to input information for given course item
     def inputCourseItemInfo(self):
         itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
-
         itemName = input("Enter the name of the item (e.g. minor assignment #1) here: ").lower().capitalize()
 
+        # inputValues = [percentAchieved, percentageWeight]
+        inputValues = []
+        # input messages and error message for prompting user percentAchieved and percentWeight data values
+        inputMsgs = ("your percent achieved (e.g. 100.0, 6/8 * 100)",
+                     "the percentage weight of {} (e.g. 20.0, 4.0/9)".format(itemName))
+
+        # while loop exception handling to prevent duplicate items from being entered into course items matrix
         if itemType in self.courseItemsMatrix:
             while itemName in self.courseItemsMatrix[itemType]:
-                itemName = input("Sorry, but an item with that same name already exists under the type {}. Please " +
-                                 "re-enter a different item name here: ".format(itemType))
+                itemName = input("Sorry, but an item with that same name already exists under the type {}. Please "
+                                 "re-enter a different item name here: ".format(itemType)).lower().capitalize()
 
-        percentAchieved = float(eval(input("Enter your percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
-        percentageWeight = float(eval(input("Enter the percentage weight of {} here: ".format(itemName))))
-        return itemType, itemName, percentAchieved, percentageWeight
+        # iterates for percentAchieved and percentWeight; exception handling for syntax, value and zero division errors
+        for inputMsg in inputMsgs:
+            while True:
+                try:
+                    inputValues.append(float(eval(input("Enter {} here: ".format(inputMsg)))))
+                    break
+                except (SyntaxError or ValueError or ZeroDivisionError):
+                    print("Sorry, but that was an invalid input value. Please re-enter a valid input value below.")
+
+        # returns itemType, itemName, percentAchieved, percentageWeight
+        return itemType, itemName, inputValues[0], inputValues[1]
 
     # allows user to input information to edit in given course item (for reformatted data entries)
     def editCourseItemInfo(self, oldItemType, oldItemName):
+        # inputValues = [percentAchieved, PercentWeight]
+        inputValues = []
+        inputMsgs = ("achieved (e.g. 100.0, 6/8 * 100)", "weight (e.g. 20.0, 4.0/9)")
+
+        # input item type
         itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
         if itemType == "":
             itemType = oldItemType
 
-        itemName = input("Enter the name of the item (e.g. minor assignment #1) here: ").lower().capitalize()
+        # input item name
+        itemName = input("Enter the item name (e.g. minor assignment #1) here: ").lower().capitalize()
         if itemName == "":
             itemName = oldItemName
 
-        try:
-            percentAchieved = float(eval(input("Enter your item percent achieved (e.g. 100.0, 6/8 * 100) here: ")))
-        except SyntaxError:
-            percentAchieved = self.courseItemsMatrix[oldItemType][oldItemName][0]
+        # while loop exception handling to prevent duplicate items from being entered into course items matrix
+        while itemType in self.courseItemsMatrix:
+            lastItemType = itemType
+            # runs while itemType has not been changed
+            while lastItemType == itemType:
+                # checks exception where itemType and itemName are unchanged
+                if (itemType == oldItemType) and (itemName == oldItemName):
+                    break
+                # checks for duplicate items
+                elif itemName in self.courseItemsMatrix[itemType]:
+                    print("Sorry, but the item name {0} has already been taken by another object also of type {1}."
+                          .format(itemName, itemType))
+                    # input item type
+                    itemType = input("Enter the item type (e.g. minor assignment, midterm) here: ").lower()
+                    if itemType == "":
+                        itemType = oldItemType
 
-        try:
-            percentWeight = float(eval(input("Enter your item percent weight (e.g. 100.0, 6/8 * 100) here: ")))
-        except SyntaxError:
-            percentWeight = self.courseItemsMatrix[oldItemType][oldItemName][1]
+                    # input item name
+                    itemName = input("Enter the item name (e.g. minor assignment #1) here: ").lower().capitalize()
+                    if itemName == "":
+                        itemName = oldItemName
+                # assumes item type and name do not create a duplicate data entry in course items matrix
+                else:
+                    break
 
-        return itemType, itemName, percentAchieved, percentWeight
+            # breaks while loop if item type or item name is changed (or both are changed)
+            if (itemType != lastItemType) or (itemName != oldItemName):
+                break
+
+            # breaks while loop if both item type and name are unchanged
+            elif (itemType == lastItemType) and (itemName == oldItemName):
+                break
+
+        # iterates for percentAchieved and percentWeight; exception handling for syntax, value and zero division errors
+        for i in range(len(inputMsgs)):
+            try:
+                inputValues.append(float(eval(input("Enter your item percent {} here: ".format(inputMsgs[i])))))
+            # assumes user does not want to change given value
+            except SyntaxError:
+                inputValues.append(self.courseItemsMatrix[oldItemType][oldItemName][i])
+            except (ValueError or ZeroDivisionError):
+                print("Sorry, but that was an invalid input value. Please re-enter a valid input value below.")
+
+        # returns itemType, itemName, percentAchieved, percentageWeight
+        return itemType, itemName, inputValues[0], inputValues[1]
 
     # allows user to input information to edit/delete given course item entries
     def editDeleteCourseItemInfo(self, EDN):
         editDelete = ('edit', 'delete')
+
+        # prints out all items in course items matrix
+        for itemType in self.courseItemsMatrix:
+            print(itemType)
+            for item in self.courseItemsMatrix[itemType]:
+                print(item)
 
         # input (old) item type here (with while loop exception handling)
         itemType = input("Input the type of the item you would like to {} (e.g. midterm) here: ".format(
             editDelete[EDN])).lower()
 
         while itemType not in self.courseItemsMatrix:
-            itemType = input("Sorry, but that item type does not exist. Please re-enter the type of the item you " +
+            itemType = input("Sorry, but that item type does not exist. Please re-enter the type of the item you "
                              "would like to {} (e.g. midterm) here: ".format(editDelete[EDN])).lower()
 
         # input (old) item name here (with while loop exception handling)
@@ -141,7 +197,7 @@ class MacBotCourseProfileCreator:
                          ).lower().capitalize()
 
         while itemName not in self.courseItemsMatrix[itemType]:
-            itemName = input("Sorry, but that item name does not exist. Please re-enter the item name (type {0}) you " +
+            itemName = input("Sorry, but that item name does not exist. Please re-enter the item name (type {0}) you "
                              "would like to {1} here: ".format(itemType, editDelete[EDN])).lower().capitalize()
 
         return itemType, itemName
@@ -166,9 +222,14 @@ class MacBotCourseProfileCreator:
         self.courseItemsMatrix[itemType][itemName] = [percentAchieved, percentageWeight]
 
         # deletes unused item types from reformatted course items info matrix
+        items2Delete = []
+        # checks if item type dictionary is empty
         for item in self.courseItemsMatrix:
             if len(self.courseItemsMatrix[item]) == 0:
-                del self.courseItemsMatrix[item]
+                items2Delete.append(item)
+        # deletes each empty item type dictionary
+        for item in items2Delete:
+            del self.courseItemsMatrix[item]
 
     # deletes course item information entry from reformatted course items list
     def deleteCourseItem(self, itemType, itemName):
@@ -247,4 +308,3 @@ class MacBotCourseProfileCreator:
                     round(self.courseItemsMatrix[itemType][itemName][0], 3),
                     self.courseItemsMatrix[itemType][itemName][1]))
             print("\n--------------------------------")
-
