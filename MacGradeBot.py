@@ -1,8 +1,8 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.1.2 (Developmental)
-Last Updated: December 21th, 2019
+Program Version: 0.1.3 (Developmental)
+Last Updated: December 24th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
 [insert program description]
@@ -11,9 +11,10 @@ Program Description
 from time import *
 from pickle import *
 from MacBotCourseProfileCreator import *
+import os
 
 # this controls program data updating/patching functions/mechanisms in the program
-currentBotVersion = 1.2
+currentBotVersion = 1.3
 
 
 class MacGradeBot:
@@ -40,19 +41,27 @@ class MacGradeBot:
         self.cumulativeAvg = float()
         self.cumulativeGPA = float()
 
-        userChoice = input("Login or Sign Up: ")
+        # user choices
+        self.userChoices = ('display', 'add', 'edit', 'avg', 'gpa', 'save', 'quit')
+
+        # takes in user choice (login or sign up); equipped with while loop exception handling
+        userChoice = input("Login or Sign Up: ").lower()
+
+        while (userChoice != "login") and (userChoice != "sign up"):
+            userChoice = input("Sorry, but that input was invalid . Please choose to login or sign up here: ").lower()
+
+        # start signUp() method if user chooses to sign up
         if userChoice.lower() == 'sign up':
-            # start signUp() method
             self.signUp()
+        # start login() method if user chooses to login
         else:
             self.login()
 
+        # starts main method of user has signed up/logged in successfully
         self.main()
 
     # main method
     def main(self):
-        userChoices = ('display', 'add', 'edit', 'avg', 'gpa', 'save', 'quit')
-
         print("Here is your current MacGradeBot student profile:\nCurrent Courses: ", self.courseNames, "\nCourse Info")
 
         indent = len(max(self.courseNames)) + 3
@@ -66,41 +75,45 @@ class MacGradeBot:
             print("MacGradeBot Program")
             userChoice = input("Hello, would you like to display current courses (display), add/edit a course " +
                                "(add/edit), calculate your cumulative average (avg) or gpa (gpa), save your data " +
-                               "(save) or quit (quit): ")
+                               "(save) or quit (quit): ").lower()
 
             # exception handling for user choice inputs
-            while userChoice not in userChoices:
-                userChoice = input("Please input display/add/edit/avg/save/quit here: ")
+            while userChoice not in self.userChoices:
+                userChoice = input("Please input display/add/edit/avg/save/quit here: ").lower()
 
             # display current courses
-            if userChoice == userChoices[0]:
+            if userChoice == self.userChoices[0]:
                 self.displayCourses()
 
             # adding a course
-            elif userChoice == userChoices[1]:
+            elif userChoice == self.userChoices[1]:
                 self.openCourseProfile(self.addCourse())
 
             # editing a course's info
-            elif userChoice == userChoices[2]:
+            elif userChoice == self.userChoices[2]:
                 self.openCourseProfile(self.editCourseInfo())
 
             # calculates course avg
-            elif userChoice == userChoices[3]:
+            elif userChoice == self.userChoices[3]:
                 self.calcCumulativeAvg()
 
             # calculates course GPA
-            elif userChoice == userChoices[4]:
+            elif userChoice == self.userChoices[4]:
                 self.calcCumlativeGPA()
 
             # saves all changes to course info for all existing course profiles
-            elif userChoice == userChoices[5]:
+            elif userChoice == self.userChoices[5]:
                 self.saveController()
 
             # quits the program (add option later asking if user wants to save edits or not)
             else:
                 self.quit()
 
-            userChoice = input("Would you like to quit (yes/no): ")
+            # allows user to quit the program or to continue to use it; equipped with while loop exception handling
+            userChoice = input("Would you like to quit (yes/no): ").lower()
+
+            while (userChoice != "yes") and (userChoice != "no"):
+                userChoice = input("Sorry, but that was an invalid input. Would you like to quit (yes/no): ").lower()
 
             if userChoice == "no":
                 pass
@@ -109,12 +122,20 @@ class MacGradeBot:
 
     # sign up method
     def signUp(self):
+        # takes user name, username (and implicitly save file name)
         self.name = input("Name: ")
-
         self.username = input("Username: ")
-
         self.saveFile = self.username
 
+        # program attempts to create directory using save file name to store user data
+        try:
+            os.mkdir("{0}/{0}".format(self.saveFile))
+        except OSError:
+            print("Creation of the directory {0}/{0} has failed.".format(self.saveFile))
+        else:
+            print("Creation of the directory {0}/{0} was successful.".format(self.saveFile))
+
+        # takes in user password and confirms it (using while loop exception handling)
         self.password = input("Password: ")
         self.passwordConfirm = input("Confirm Password: ")
 
@@ -122,12 +143,13 @@ class MacGradeBot:
             print("Please re-confirm your password.")
             self.passwordConfirm = input("Confirm Password: ")
 
-        self.email = input("Email: ")
-        self.emailConfirm = input("Confirm Email: ")
+        # takes in user email and confirms it (sing while loop exception handling)
+        self.email = input("Email: ").lower()
+        self.emailConfirm = input("Confirm Email: ").lower()
 
         while self.email != self.emailConfirm:
-            print("Please re-confirm your email.")
-            self.emailConfirm = input("Confirm Email: ")
+            print("Please re-confirm your email.").lower()
+            self.emailConfirm = input("Confirm Email: ").lower()
 
     # login method
     def login(self):
@@ -169,8 +191,15 @@ class MacGradeBot:
             courseName = input("Sorry, but that course name has already been taken. Please re-enter your course name" +
                                " (e.g. ENG COMP) here: ").upper()
 
-        courseCode = input("Enter the course code for {} here: ".format(courseName))
-        courseCredits = int(input("Enter the # of credits for {} here: ".format(courseName)))
+        courseCode = input("Enter the course code for {} here: ".format(courseName)).upper()
+
+        # while loop to take in # of credits for course; equipped with exception handling for ValueErrors (e.g. floats)
+        while True:
+            try:
+                courseCredits = int(input("Enter the # of credits (e.g. 3, 4) for {} here: ".format(courseName)))
+                break
+            except ValueError:
+                print("Sorry, but the # of credits for {} must be entered in as an integer value.".format(courseName))
 
         # appends course name to courseNames; creates new course profile object (class instance)
         self.courseNames.append(courseName)
