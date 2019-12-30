@@ -13,6 +13,7 @@
 - 0.1.1: removed duplicate methods for both older and newer versions of formatted data; updated data formatting; average and GPA calculating methods now display results after calculating; removed self.courseInfo2 and stores data in self.courseInfo
 - 0.1.2: bug fixes in methods
 - 0.1.3: exception handling implemented for all input functions in program code
+- 0.1.4: revamped course profile info updatting methods (added new method updateCourseProfileInfo()); revamped text display
 
 ## MacBotCourseProfileCreator Developmental Version Updates
 - 0.0.1: created basic skeleton outline code
@@ -26,4 +27,4 @@
 - 0.1.2: bug fixes in methods
 - 0.1.3: exception handling implemented for all input functions in program library code
 
-Last Updated: December 24th, 2019
+Last Updated: December 30th, 2019
