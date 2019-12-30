@@ -1,8 +1,8 @@
 """
 ------------------------------------------------------------------------------------------------------------------------
 Programmer(s): Nathaniel Hu
-Program Version: 0.1.3 (Developmental)
-Last Updated: December 24th, 2019
+Program Version: 0.1.4 (Developmental)
+Last Updated: December 30th, 2019
 ------------------------------------------------------------------------------------------------------------------------
 Program Description
 [insert program description]
@@ -32,10 +32,8 @@ class MacGradeBot:
 
         # student course + course information (course profiles) dictionary + cumulative average
         self.courseNames = []
-        # original format data matrix
-        self.courseInfo = {}
         # updated format data matrix
-        # self.courseInfo2 = {}
+        self.courseInfo = {}
 
         # cumulative avg/GPA
         self.cumulativeAvg = float()
@@ -44,11 +42,17 @@ class MacGradeBot:
         # user choices
         self.userChoices = ('display', 'add', 'edit', 'avg', 'gpa', 'save', 'quit')
 
+        print("===================================== MacGradeBot Program ======================================" +
+              "\nWelcome to the MacGradeBot Program.\n" +
+              "\n---------------------------------------------------------------------------------")
+
         # takes in user choice (login or sign up); equipped with while loop exception handling
-        userChoice = input("Login or Sign Up: ").lower()
+        userChoice = input("Would you like to login or sign up?" +
+                           "\nPlease enter your choice (login/sign up) here: ").lower()
 
         while (userChoice != "login") and (userChoice != "sign up"):
-            userChoice = input("Sorry, but that input was invalid . Please choose to login or sign up here: ").lower()
+            userChoice = input("--------------------------------\n" +
+                               "Sorry, but that input was invalid . Please choose to login or sign up here: ").lower()
 
         # start signUp() method if user chooses to sign up
         if userChoice.lower() == 'sign up':
@@ -62,24 +66,27 @@ class MacGradeBot:
 
     # main method
     def main(self):
-        print("Here is your current MacGradeBot student profile:\nCurrent Courses: ", self.courseNames, "\nCourse Info")
+        print("----------------------------------------------------------------\n" +
+              "Here is your current MacGradeBot student profile:\nCurrent Courses: ", self.courseNames, "\nCourse Info")
 
         indent = len(max(self.courseNames)) + 3
 
         for course in self.courseInfo:
             print(course + ":" + " "*(indent - len(course)) + str(self.courseInfo[course]))
 
-        print("Current Cumulative Average:", self.cumulativeAvg, "\nCurrent Cumulative GPA:", self.cumulativeGPA)
+        print("--------------------------------\nCurrent Cumulative Average:", self.cumulativeAvg,
+              "\nCurrent Cumulative GPA:", self.cumulativeGPA)
 
         while True:
-            print("MacGradeBot Program")
-            userChoice = input("Hello, would you like to display current courses (display), add/edit a course " +
+            print("===================================== MacGradeBot Program ======================================")
+            userChoice = input("\nHello, would you like to display current courses (display), add/edit a course " +
                                "(add/edit), calculate your cumulative average (avg) or gpa (gpa), save your data " +
                                "(save) or quit (quit): ").lower()
 
             # exception handling for user choice inputs
             while userChoice not in self.userChoices:
-                userChoice = input("Please input display/add/edit/avg/save/quit here: ").lower()
+                userChoice = input("--------------------------------\nSorry, but that input was invalid." +
+                                   " Please input display/add/edit/avg/save/quit here: ").lower()
 
             # display current courses
             if userChoice == self.userChoices[0]:
@@ -110,7 +117,8 @@ class MacGradeBot:
                 self.quit()
 
             # allows user to quit the program or to continue to use it; equipped with while loop exception handling
-            userChoice = input("Would you like to quit (yes/no): ").lower()
+            userChoice = input("----------------------------------------------------------------\n" +
+                               "Would you like to quit the MacGradeBot Program (yes/no): ").lower()
 
             while (userChoice != "yes") and (userChoice != "no"):
                 userChoice = input("Sorry, but that was an invalid input. Would you like to quit (yes/no): ").lower()
@@ -122,11 +130,13 @@ class MacGradeBot:
 
     # sign up method
     def signUp(self):
+        print("----------------------------------------------------------------")
         # takes user name, username (and implicitly save file name)
         self.name = input("Name: ")
         self.username = input("Username: ")
         self.saveFile = self.username
 
+        print("----------------------------------------------------------------")
         # program attempts to create directory using save file name to store user data
         try:
             os.mkdir("{0}/{0}".format(self.saveFile))
@@ -135,6 +145,7 @@ class MacGradeBot:
         else:
             print("Creation of the directory {0}/{0} was successful.".format(self.saveFile))
 
+        print("----------------------------------------------------------------")
         # takes in user password and confirms it (using while loop exception handling)
         self.password = input("Password: ")
         self.passwordConfirm = input("Confirm Password: ")
@@ -143,6 +154,7 @@ class MacGradeBot:
             print("Please re-confirm your password.")
             self.passwordConfirm = input("Confirm Password: ")
 
+        print("----------------------------------------------------------------")
         # takes in user email and confirms it (sing while loop exception handling)
         self.email = input("Email: ").lower()
         self.emailConfirm = input("Confirm Email: ").lower()
@@ -154,6 +166,7 @@ class MacGradeBot:
     # login method
     def login(self):
         while True:
+            print("----------------------------------------------------------------")
             user = input("Username: ")
             self.password = input("Password: ")
 
@@ -177,13 +190,15 @@ class MacGradeBot:
 
     # method displays all current courses in student profile
     def displayCourses(self):
-        print("Here are all of your current courses:\n--------------------------------")
+        print("----------------------------------------------------------------\n" +
+              "Here are all of your current courses:\n--------------------------------")
         for course in self.courseNames:
             print(self.courseInfo[course].courseCode, course)
         print("--------------------------------")
 
     # method adds course + course info (creates/adds new course profile) to student profile
     def addCourse(self):
+        print("----------------------------------------------------------------")
         # gets user inputted information
         courseName = input("Enter your course name (e.g. ENG COMP) here: ").upper()
 
@@ -209,6 +224,7 @@ class MacGradeBot:
 
     # allows user to update course grades (labs, assignments, midterm tests and exams, etc.)
     def editCourseInfo(self):
+        print("----------------------------------------------------------------")
         # gets user inputted information
         courseName = input("Enter the name of the course that you would like to edit here: ").upper()
 
@@ -231,7 +247,8 @@ class MacGradeBot:
 
         # calculates cumulative average (percentage) and displays to user
         self.cumulativeAvg = round(averageSum / creditsSum, 2)
-        print("Your overall cumulative average is:", self.cumulativeAvg)
+        print("----------------------------------------------------------------" +
+              "\nYour overall cumulative average is:", self.cumulativeAvg)
 
     # calculates cumulative GPA
     def calcCumlativeGPA(self):
@@ -245,7 +262,8 @@ class MacGradeBot:
 
         # calculates cumulative GPA (12-point) and displays to user
         self.cumulativeGPA = round(gpaSum / creditsSum, 2)
-        print("Your overall cumulative GPA is:", self.cumulativeGPA)
+        print("----------------------------------------------------------------" +
+              "\nYour overall cumulative GPA is:", self.cumulativeGPA)
 
     # saves user profile (binary and text files) for later patched program versions
     def saveToFile(self):
@@ -282,7 +300,7 @@ class MacGradeBot:
 
     # save controller method
     def saveController(self):
-        print("saving student profile")
+        print("--------------------------------\nSaving Student Profile...")
         self.saveToFile()
 
     # opens user profile (binary file)
@@ -343,13 +361,29 @@ class MacGradeBot:
 
         self.courseInfo[courseName] = MacBotCourseProfileCreator(courseName, courseCode, courseCredits)
 
-        # transferring old data over to new class object
-        self.courseInfo[courseName].courseItemsMatrix = courseInfoMatrix[courseName].courseItemsMatrix2
+        # checks if courseItemsMatrix2 is filled
+        if courseInfoMatrix[courseName].courseItemsMatrix2:
+            # transferring old data over to new class object
+            self.courseInfo[courseName].courseItemsMatrix = courseInfoMatrix[courseName].courseItemsMatrix2
+        # assumes courseItemsMatrix2 is empty
+        else:
+            self.updateCourseProfileInfo(courseName, courseInfoMatrix[courseName].courseItemsMatrix)
 
         self.courseInfo[courseName].courseAvg = courseInfoMatrix[courseName].getCourseAvg()
         self.courseInfo[courseName].coursePercentAchieved = courseInfoMatrix[courseName].getCoursePercentAchieved()
         self.courseInfo[courseName].coursePercentWeighted = courseInfoMatrix[courseName].getCoursePercentWeighted()
         self.courseInfo[courseName].course12pGPA = courseInfoMatrix[courseName].getCourse12pGPA()
+
+    # takes data from old class instances and reformat the data (original to updated data format)
+    def updateCourseProfileInfo(self, oldCourseName, oldCourseItemsMatrix):
+        for courseItem in oldCourseItemsMatrix:
+            # creates new dictionary for new item type
+            if courseItem[0] not in self.courseInfo[oldCourseName].courseItemsMatrix:
+                self.courseInfo[oldCourseName].courseItemsMatrix[courseItem[0]] = {}
+
+            # adds new item entry to course profile item info matrix (with reformatted data)
+            self.courseInfo[oldCourseName].courseItemsMatrix[courseItem[0]][courseItem[1]] = [courseItem[2],
+                                                                                              [courseItem[3]]]
 
     # takes data from old class instances and creates new updated class instances with same data
     # FIXME update this later to only transfer each data entry's info rather than entire matrix
@@ -362,7 +396,7 @@ class MacGradeBot:
     # quit method
     def quit(self):
         self.saveController()
-        print("shutting down")
+        print("--------------------------------\nShutting Down Program...")
         quit()
 
 
